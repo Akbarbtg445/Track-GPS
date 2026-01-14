@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Tracker</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        .status { padding: 15px; background: #e8f5e9; border-radius: 8px; border: 1px solid #4caf50; display: none; }
+    </style>
+</head>
+<body>
+    <h2>📡 Pengirim Sinyal Lokasi</h2>
+    <p>Pastikan layar tetap menyala atau browser tetap terbuka.</p>
+    <div id="msg" class="status"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // --- GANTI BAGIAN INI DENGAN CONFIG ANDA DARI LANGKAH 1 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyD...",
+            authDomain: "project-id.firebaseapp.com",
+            databaseURL: "https://project-id-default-rtdb.firebaseio.com",
+            projectId: "project-id",
+            storageBucket: "project-id.appspot.com",
+            messagingSenderId: "123456...",
+            appId: "1:123456..."
+        };
+        // -----------------------------------------------------------
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Minta identitas perangkat
+        let deviceID = localStorage.getItem("deviceID");
+        if (!deviceID) {
+            deviceID = prompt("Masukkan Nama Perangkat ini (cth: HP Reno, HP Ayah):");
+            if(deviceID) localStorage.setItem("deviceID", deviceID);
+        }
+
+        if (deviceID) {
+            document.getElementById("msg").style.display = "block";
+            document.getElementById("msg").innerText = "Mengirim lokasi untuk: " + deviceID;
+            
+            // Mulai melacak posisi secara realtime
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition((position) => {
+                    db.ref("devices/" + deviceID).set({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        lastUpdate: Date.now()
+                    });
+                }, (error) => {
+                    alert("Gagal akses GPS. Pastikan izin lokasi diberikan.");
+                }, {
+                    enableHighAccuracy: true
+                });
+            } else {
+                alert("Browser tidak support GPS.");
+            }
+        } else {
+            alert("Nama perangkat wajib diisi untuk mulai melacak.");
+        }
+    </script>
+</body>
+</html>
